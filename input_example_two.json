@@ -1,0 +1,20 @@
+{
+  "default_attributes": {
+    "openldap": {
+      "server": {
+        "serverid_list": [
+          "7 ldaps://95/",
+          "8 ldaps://sadasd95/",
+          "9 ldaps://9999999999995/"
+        ],
+        "somethingnew": {
+          "somekey": "value"
+        },
+        "newlisr": [
+          "one",
+          "two"
+        ]
+      }
+    }
+  }
+}
