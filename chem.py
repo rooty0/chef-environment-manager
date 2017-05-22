@@ -20,10 +20,9 @@ __version__ = 1.0
 __doc__ = "Multi environment manager"
 
 
-# if sys.version_info < (3, 5, 0):
-#     # Not sure if it works with python 3.0 =< py-ver < 3.5
-#     sys.stderr.write("You need python 3.5 or later to run this script\n")
-#     sys.exit(1)
+if sys.version_info < (3, 5, 0):
+    sys.stderr.write("You need python 3.5 or later to run this script\n")
+    sys.exit(1)
 
 
 def load_config(spork_config_file):
@@ -235,9 +234,9 @@ def main(arguments):
     parser.add_argument('--environment-exclude', type=str, dest='ENV_EXCLUDE',
                         help='regex name to exclude any environment from group list'),
     parser.add_argument('--spork-config-file', '-c', help='path to config file to use', type=str, dest='PATH_CFG',
-                        default='/Users/stan/me/work/chef/Ops-Chef/config/spork-config.yml')
+                        default=os.environ.get('CHEM_SPORK_CONFIG', ''))
     parser.add_argument('--env-path', help='path to a dir with environments', type=str, dest='PATH_ENV',
-                        default='/Users/stan/me/work/chef/Ops-Chef/environments')
+                        default=os.environ.get('CHEM_ENV_PATH', ''))
     parser.add_argument('--attribute', '-atr', help='dot tree representation', type=str, dest='ATTRIBUTE')
     parser.add_argument('--patch-interactive', '-m', dest='PATCH_MODE', action="store_true",
                         help='Make a patch using the editor specified by the EDITOR environment variable')
@@ -273,8 +272,8 @@ def main(arguments):
 
         print("Processing: {}".format(environment))
 
-        env_data = get_environment(environment)
-        env_data_modified = modify_environment(args.PATH_ENV, env_data, modified_attributes, args.ACTION)
+        env_data = get_environment(args.PATH_ENV, environment)
+        env_data_modified = modify_environment(env_data, modified_attributes, args.ACTION)
         write_environment(args.PATH_ENV, environment, env_data_modified)
 
 
