@@ -29,7 +29,7 @@ __doc__ = "Multi environment manager"
 def load_config(spork_config_file):
     """
     fixme
-    :return: 
+    :return:
     """
     return yaml.load(open(spork_config_file).read())
 
@@ -41,7 +41,7 @@ def get_environment_groups(config):
 def attr_dict_new(attrs):
     """
     Example: default_attributes.client.ldap_server:final_value
-    
+
     :param attrs: a dot tree string representation of a dict, see example above
     :return: dict from a dot string model
     """
@@ -55,9 +55,9 @@ def attr_dict_new(attrs):
         """
         See examples here:
          http://stackoverflow.com/questions/12414821/checking-a-dictionary-using-a-dot-notation-string
-        
+
         :param keys: a dot tree of an array like default_attributes.client.ldap_server
-        :param item: final value 
+        :param item: final value
         :param array_build: this argument needed by function recursion
         :return: builded array (can contain dicts and lists)
         """
@@ -99,7 +99,7 @@ def modify_environment(current, patch, action, path=[]):
     """
     Upgrades current environment with a provided patch
     Merges "patch" into "current"
-    
+
     :param current: full original json object aka nested dicts + lists
     :param patch: json attributes to upgrade in current JSON object
     :param action: set / unset
@@ -148,9 +148,9 @@ def modify_environment(current, patch, action, path=[]):
 
 def get_environment(environments_location, environment_name):
     """
-    
-    :param environment_name: 
-    :return: 
+
+    :param environment_name:
+    :return:
     """
     environment_file_ext = 'json'
     environment_fullpath = "{}/{}.{}".format(environments_location, environment_name, environment_file_ext)
@@ -160,10 +160,10 @@ def get_environment(environments_location, environment_name):
 
 def write_environment(environments_location, environment_name, body):
     """
-    
-    :param environment_name: 
-    :param body: 
-    :return: 
+
+    :param environment_name:
+    :param body:
+    :return:
     """
     environment_file_ext = 'json'
     environment_fullpath = "{}/{}.{}".format(environments_location, environment_name, environment_file_ext)
@@ -173,7 +173,7 @@ def write_environment(environments_location, environment_name, body):
 def interactive_editor():
     """
     Use your favorite editor to provide a set of attributes
-    
+
     :return: returns dict
     """
 
@@ -211,7 +211,7 @@ def interactive_editor():
 def validate_json_syntax(json_data):
     """
     Simple validator for JSON syntax
-    
+
     :param json_data: body of json
     :return: bool, true if syntax is ok
     """
