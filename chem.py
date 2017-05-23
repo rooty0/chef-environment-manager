@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3.5
 
 """Multi environment manager
 
@@ -145,28 +145,38 @@ def modify_environment(current, patch, action, path=[]):
     return current
 
 
-def get_environment(environments_location, environment_name):
+def environment_path(environments_location, environment_name):
     """
-
-    :param environment_name:
-    :return:
+    
+    :param environments_location: 
+    :param environment_name: 
+    :return: 
     """
     environment_file_ext = 'json'
     environment_fullpath = "{}/{}.{}".format(environments_location, environment_name, environment_file_ext)
 
-    return json.loads(open(environment_fullpath).read(), object_pairs_hook=OrderedDict)
+    return environment_fullpath
 
 
-def write_environment(environments_location, environment_name, body):
+def get_environment(environment_location):
     """
 
-    :param environment_name:
+    :param environment_location:
+    :return:
+    """
+    return json.loads(open(environment_location).read(), object_pairs_hook=OrderedDict)
+
+
+def write_environment(environment_location, body, tab_space_num=2):
+    """
+
+    :param environment_location:
     :param body:
+    :param tab_space_num:
     :return:
     """
-    environment_file_ext = 'json'
-    environment_fullpath = "{}/{}.{}".format(environments_location, environment_name, environment_file_ext)
-    open(environment_fullpath, 'w').write(json.dumps(body, indent=2))
+    open(environment_location, 'w').write(json.dumps(body, indent=tab_space_num))
+    return True
 
 
 def interactive_editor():
@@ -227,10 +237,10 @@ def main(arguments):
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('--action', '-a', help='set/unset', type=str, dest='ACTION', default='set'),
-    parser.add_argument('--environment-group', '-g', type=str, dest='ENV_GR', default='set',
+    parser.add_argument('--environment-group', '-g', type=str, dest='ENV_GR',
                         help='perform an action to a specific environment group'),
-    # parser.add_argument('--environment', '-e', type=str, dest='ENV', default='set',
-    #                     help='perform an action to a single environment or environments'),
+    parser.add_argument('--environment', '-e', type=str, dest='ENV_NAME',
+                        help='perform an action to a single environment or environments'),
     parser.add_argument('--environment-exclude', type=str, dest='ENV_EXCLUDE',
                         help='regex name to exclude any environment from group list'),
     parser.add_argument('--spork-config-file', '-c', help='path to config file to use', type=str, dest='PATH_CFG',
@@ -263,7 +273,12 @@ def main(arguments):
     spork_config = load_config(args.PATH_CFG)
     env_groups = get_environment_groups(spork_config)
 
-    env_group_current_list = env_groups[args.ENV_GR]
+    if args.ENV_GR:
+        env_group_current_list = env_groups[args.ENV_GR]
+    elif args.PATH_ENV:
+        env_group_current_list = [args.ENV_NAME]
+    else:
+        parser.error('You should specify an environment group or single environment name')
 
     for environment in env_group_current_list:
 
@@ -272,9 +287,16 @@ def main(arguments):
 
         print("Processing: {}".format(environment))
 
-        env_data = get_environment(args.PATH_ENV, environment)
+        env_file_full_path = environment_path(
+            args.PATH_ENV,
+            environment
+        )
+
+        env_data = get_environment(env_file_full_path)
         env_data_modified = modify_environment(env_data, modified_attributes, args.ACTION)
-        write_environment(args.PATH_ENV, environment, env_data_modified)
+        write_environment(env_file_full_path, env_data_modified)
+
+        del env_data_modified
 
 
 if __name__ == '__main__':
