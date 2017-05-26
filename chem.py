@@ -16,7 +16,7 @@ from collections import OrderedDict
 
 
 __author__ = "Stanislav Rudenko"
-__version__ = 1.0
+__version__ = 1.1
 __doc__ = "Multi environment manager"
 
 
@@ -240,7 +240,7 @@ def main(arguments):
     parser.add_argument('--environment-group', '-g', type=str, dest='ENV_GR',
                         help='perform an action to a specific environment group'),
     parser.add_argument('--environment', '-e', type=str, dest='ENV_NAME',
-                        help='perform an action to a single environment or environments'),
+                        help='perform an action to a single environment or environments separated by commas'),
     parser.add_argument('--environment-exclude', type=str, dest='ENV_EXCLUDE',
                         help='regex name to exclude any environment from group list'),
     parser.add_argument('--spork-config-file', '-c', help='path to config file to use', type=str, dest='PATH_CFG',
@@ -276,7 +276,8 @@ def main(arguments):
     if args.ENV_GR:
         env_group_current_list = env_groups[args.ENV_GR]
     elif args.PATH_ENV:
-        env_group_current_list = [args.ENV_NAME]
+        # Split by commas and strip extra space if there is
+        env_group_current_list = [x.strip() for x in args.ENV_NAME.split(',')]
     else:
         parser.error('You should specify an environment group or single environment name')
 
