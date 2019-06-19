@@ -1,4 +1,4 @@
-#!/usr/bin/env python3.5
+#!/usr/bin/env python3.7
 
 """Multi environment manager
 
@@ -16,7 +16,7 @@ from collections import OrderedDict
 
 
 __author__ = "Stanislav Rudenko"
-__version__ = 1.1
+__version__ = 1.2
 __doc__ = "Multi environment manager"
 
 
@@ -45,7 +45,9 @@ def attr_dict_new(attrs):
     :return: dict from a dot string model
     """
     try:
-        path, value = attrs.split(':')
+        # path, value = attrs.split(':')
+        path, value = attrs.split(':', 1)
+        # path, value = re.split(r'(?<!\\):', attrs)
     except ValueError:
         path = attrs
         value = "undefined"
@@ -175,7 +177,10 @@ def write_environment(environment_location, body, tab_space_num=2):
     :param tab_space_num:
     :return:
     """
-    open(environment_location, 'w').write(json.dumps(body, indent=tab_space_num))
+    # open(environment_location, 'w').write(json.dumps(body, indent=tab_space_num))
+    with open(environment_location, "w") as json_environment_file:
+        json_environment_buffer = json.dumps(body, indent=tab_space_num, default="\n")
+        json_environment_file.write("{}\n".format(json_environment_buffer))  # Add newline cause Py does not
     return True
 
 
@@ -189,9 +194,13 @@ def interactive_editor():
     editor = os.environ.get('EDITOR', 'vi')
     initial_message = "# Lines starting with '#' will be ignored\n" \
                       "# Please provide a full path, aka you\n" \
-                      "# want to start from \"default_attributes\": {...} \n\n"
+                      "# want to start from \"default_attributes\": {...}\n" \
+                      "# Example: {\"default_attributes\": { \"rundeck\": {\"configuration\":" \
+                      " {\"globalproxy.populate.mysql.connect_timeout_ms\": \"600000\", " \
+                      "\"globalproxy.populate.mysql.socket_timeout_ms\": \"600000\"} }}}\n" \
+                      "#\n\n"
 
-    with tempfile.NamedTemporaryFile(suffix=".tmp", delete=False) as tf:
+    with tempfile.NamedTemporaryFile(suffix=".tmp", delete=False, mode='w+') as tf:
         tf.write(initial_message)
         tf.flush()
         call([editor, tf.name])
@@ -234,8 +243,13 @@ def validate_json_syntax(json_data):
 def main(arguments):
 
     parser = argparse.ArgumentParser(
-        description=__doc__,
-        formatter_class=argparse.RawDescriptionHelpFormatter)
+        description="\033[93m[[ {} ]]\033[0m v.\033[92m {}\033[0m ".format(__doc__.upper(), __version__),
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="example usage:\n"
+               "\t%(prog)s -e WDC-Applovin -a set -m\n"
+               "\t%(prog)s \n"
+               "\t%(prog)s \n"
+    )
     parser.add_argument('--action', '-a', help='set/unset', type=str, dest='ACTION', default='set'),
     parser.add_argument('--environment-group', '-g', type=str, dest='ENV_GR',
                         help='perform an action to a specific environment group'),
