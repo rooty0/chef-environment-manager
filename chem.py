@@ -10,6 +10,7 @@ import sys
 import os
 import argparse
 import tempfile
+import re
 
 from subprocess import call
 from collections import OrderedDict
@@ -64,9 +65,14 @@ def attr_dict_new(attrs):
         :return: builded array (can contain dicts and lists)
         """
 
-        if "." in keys:
+        # construction "if "." in keys:" is not going to work
+        # since we need escape "\."
+        splited_elements = re.split(r'(?<!\\)\.', keys, 1)  # keys.split(".", 1) with \. support
+        if len(splited_elements) > 1:
 
-            key, rest = keys.split(".", 1)
+            key, rest = splited_elements  # replacement for: key, rest = keys.split(".", 1)
+            key = key.replace('\\', '')
+            # print(key)
 
             if rest[:3] == '[].':
                 # if next element in the dot tree is list, we want to create list
@@ -87,6 +93,7 @@ def attr_dict_new(attrs):
             # = keys variable - last element in a dot tree
             # one.two.three.four.five
             #                     ^^ -- this one
+            keys = keys.replace('\\', '')
             array_build[keys] = item
 
             return item
@@ -169,8 +176,6 @@ def view_environment(current, patch, path=[]):
             # We go deeper (recursion) only if this is a dict
             if isinstance(current[key], dict) and isinstance(patch[key], dict):
                 attribute_structure = view_environment(current[key], patch[key], path + [str(key)])
-
-            # If list we DO NOT go deeper even if there is another dict inside list
             else:
                 path.append(current[key])
                 return path
@@ -278,7 +283,7 @@ def main(arguments):
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="example usage:\n"
                "\t%(prog)s -e WDC-Applovin -a set -m\n"
-               "\t%(prog)s \n"
+               "\t%(prog)s -g stage -a get -atr 'default_attributes.app.queues\\.async_postbacks\\.weight' \n"
                "\t%(prog)s \n"
     )
     parser.add_argument('--action', '-a', help='action to perform', type=str, dest='ACTION',
