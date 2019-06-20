@@ -349,12 +349,16 @@ def main(arguments):
         if args.ACTION == 'get':
 
             attribute_path = view_environment(env_data, modified_attributes)
+
             if not attribute_path:
                 print("\033[0;31mNot found\033[0m")
                 continue
+
+            attribute_value = json.dumps(dict(attribute_path[-1]), sort_keys=True, indent=4) if isinstance(attribute_path[-1], OrderedDict) else attribute_path[-1]
+
             output = "{} : \033[93m{}\033[0m".format(
                 " -> ".join(attribute_path[:-1]),
-                attribute_path[-1]
+                attribute_value
             )
             print(output)
 
