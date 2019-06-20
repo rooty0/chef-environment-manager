@@ -13,6 +13,7 @@ import tempfile
 
 from subprocess import call
 from collections import OrderedDict
+from pprint import pprint
 
 
 __author__ = "Stanislav Rudenko"
@@ -121,7 +122,7 @@ def modify_environment(current, patch, action, path=[]):
 
                 if action == 'unset':
                     del current[key]
-                else:
+                elif action == 'set':
                     current[key] += patch[key]
 
             elif current[key] == patch[key]:
@@ -136,15 +137,45 @@ def modify_environment(current, patch, action, path=[]):
                 # -- Overwriting existing value
                 if action == 'unset':
                     del current[key]
-                else:
+                elif action == 'set':
                     current[key] = patch[key]
 
         else:
             # -- Creating new key with value if it's not in current environment
-            if action != 'unset':
+            if action == 'set':
                 current[key] = patch[key]
 
     return current
+
+
+def view_environment(current, patch, path=[]):
+    """
+    Views current environment with a provided view patch
+    Compares "patch" into "current"
+    This is simplified version from modify_environment()
+
+    :param current: full original json object aka nested dicts + lists
+    :param patch: json attributes to follow in current JSON object
+    :param path: attribute for recursion call
+    :return: value environment
+    """
+
+    attribute_structure = {}
+
+    for key in patch:
+
+        if key in current:
+
+            # We go deeper (recursion) only if this is a dict
+            if isinstance(current[key], dict) and isinstance(patch[key], dict):
+                attribute_structure = view_environment(current[key], patch[key], path + [str(key)])
+
+            # If list we DO NOT go deeper even if there is another dict inside list
+            else:
+                path.append(current[key])
+                return path
+
+    return attribute_structure
 
 
 def environment_path(environments_location, environment_name):
@@ -250,7 +281,8 @@ def main(arguments):
                "\t%(prog)s \n"
                "\t%(prog)s \n"
     )
-    parser.add_argument('--action', '-a', help='set/unset', type=str, dest='ACTION', default='set'),
+    parser.add_argument('--action', '-a', help='action to perform', type=str, dest='ACTION',
+                        choices=['set', 'unset', 'get'], default='get'),
     parser.add_argument('--environment-group', '-g', type=str, dest='ENV_GR',
                         help='perform an action to a specific environment group'),
     parser.add_argument('--environment', '-e', type=str, dest='ENV_NAME',
@@ -308,10 +340,24 @@ def main(arguments):
         )
 
         env_data = get_environment(env_file_full_path)
-        env_data_modified = modify_environment(env_data, modified_attributes, args.ACTION)
-        write_environment(env_file_full_path, env_data_modified)
 
-        del env_data_modified
+        if args.ACTION == 'get':
+
+            attribute_path = view_environment(env_data, modified_attributes)
+            if not attribute_path:
+                print("\033[0;31mNot found\033[0m")
+                continue
+            output = "{} : \033[93m{}\033[0m".format(
+                " -> ".join(attribute_path[:-1]),
+                attribute_path[-1]
+            )
+            print(output)
+
+        else:
+            env_data_modified = modify_environment(env_data, modified_attributes, args.ACTION)
+            write_environment(env_file_full_path, env_data_modified)
+
+            del env_data_modified
 
 
 if __name__ == '__main__':
