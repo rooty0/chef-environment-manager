@@ -18,7 +18,7 @@ from pprint import pprint
 
 
 __author__ = "Stanislav Rudenko"
-__version__ = 1.2
+__version__ = 1.3
 __doc__ = "Multi environment manager"
 
 
